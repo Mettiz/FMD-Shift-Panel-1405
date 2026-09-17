@@ -542,9 +542,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
   
   const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = `داشبورد آمار و گزارشات شیفت - ${monthName}`;
+    
     document.body.classList.remove('print-mode-modal');
     document.body.classList.add('print-mode-dashboard');
-    window.print();
+    
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('print-mode-dashboard');
+        document.title = originalTitle;
+      }, 500);
+    }, 100);
   };
 
   const getPrintDateRange = () => {

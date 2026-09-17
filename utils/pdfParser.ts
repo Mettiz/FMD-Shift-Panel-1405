@@ -116,15 +116,15 @@ export function cleanScheduleLineText(str: string): string {
     // Fix known PDF font ligature / OCR issues in Persian names
     .replace(/فالح/g, 'فلاح')
     .replace(/ساالروند/g, 'سالاروند')
-    .replace(/یک\s*شنبه/g, 'یکشنبه')
-    .replace(/يكشنبه/g, 'یکشنبه')
-    .replace(/دو\s*شنبه/g, 'دوشنبه')
-    .replace(/سه\s*شنبه/g, 'سه‌شنبه')
-    .replace(/پنج\s*شنبه/g, 'پنج‌شنبه')
     // Normalize dashes and connectors
     .replace(/[\–\—]/g, '-')
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u200B\u200D\uFEFF]/g, '')
     .replace(/\s+/g, ' ')
+    .replace(/یک\s*شنبه|يكشنبه/g, 'یکشنبه')
+    .replace(/دو\s*شنبه/g, 'دوشنبه')
+    .replace(/سه\s*شنبه|سه\u200Cشنبه|سهشنبه/g, 'سه‌شنبه')
+    .replace(/چهار\s*شنبه/g, 'چهارشنبه')
+    .replace(/پنج\s*شنبه|پنج\u200Cشنبه|پنجشنبه/g, 'پنج‌شنبه')
     .trim();
 }
 

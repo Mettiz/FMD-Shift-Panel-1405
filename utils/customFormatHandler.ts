@@ -59,42 +59,42 @@ export const RAW_SHAHRIVAR_TEMPLATE_DATA = [
 
 export const RAW_TEMPLATE_DATA = [
   { day: 'چهارشنبه', date: '1405/01/26', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/01/27', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/01/27', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/01/28', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
   { day: 'شنبه', date: '1405/01/29', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
   { day: 'یکشنبه', date: '1405/01/30', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
   { day: 'دوشنبه', date: '1405/01/31', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
-  { day: 'سه شنبه', date: '1405/02/01', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
+  { day: 'سه‌شنبه', date: '1405/02/01', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'چهارشنبه', date: '1405/02/02', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/02/03', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/02/03', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/02/04', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
   { day: 'شنبه', date: '1405/02/05', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
   { day: 'یکشنبه', date: '1405/02/06', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'دوشنبه', date: '1405/02/07', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
-  { day: 'سه شنبه', date: '1405/02/08', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
+  { day: 'سه‌شنبه', date: '1405/02/08', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
   { day: 'چهارشنبه', date: '1405/02/09', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/02/10', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/02/10', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/02/11', dayShift: 'مهندس سالاروند', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'شنبه', date: '1405/02/12', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
   { day: 'یکشنبه', date: '1405/02/13', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
   { day: 'دوشنبه', date: '1405/02/14', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
-  { day: 'سه شنبه', date: '1405/02/15', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
+  { day: 'سه‌شنبه', date: '1405/02/15', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
   { day: 'چهارشنبه', date: '1405/02/16', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/02/17', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/02/17', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/02/18', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
   { day: 'شنبه', date: '1405/02/19', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
   { day: 'یکشنبه', date: '1405/02/20', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
   { day: 'دوشنبه', date: '1405/02/21', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
-  { day: 'سه شنبه', date: '1405/02/22', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
+  { day: 'سه‌شنبه', date: '1405/02/22', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
   { day: 'چهارشنبه', date: '1405/02/23', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/02/24', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/02/24', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/02/25', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
   { day: 'شنبه', date: '1405/02/26', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'یکشنبه', date: '1405/02/27', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
   { day: 'دوشنبه', date: '1405/02/28', dayShift: 'مهندس سپهر آرا', nightShift: 'مهندس لسانی', onCall: 'نامشخص' },
-  { day: 'سه شنبه', date: '1405/02/29', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
+  { day: 'سه‌شنبه', date: '1405/02/29', dayShift: 'مهندس سالاروند', nightShift: 'مهندس دهقان', onCall: 'نامشخص' },
   { day: 'چهارشنبه', date: '1405/02/30', dayShift: 'مهندس لسانی', nightShift: 'مهندس سلیمان فلاح', onCall: 'نامشخص' },
-  { day: 'پنجشنبه', date: '1405/02/31', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
+  { day: 'پنج‌شنبه', date: '1405/02/31', dayShift: 'مهندس دهقان', nightShift: 'مهندس سپهر آرا', onCall: 'نامشخص' },
   { day: 'جمعه', date: '1405/03/01', dayShift: 'مهندس سلیمان فلاح', nightShift: 'مهندس سالاروند', onCall: 'نامشخص' },
 ];
 
@@ -111,13 +111,13 @@ export const normalizePersianText = (str: string): string => {
     // OCR / ligature fixes
     .replace(/فالح/g, 'فلاح')
     .replace(/ساالروند/g, 'سالاروند')
-    .replace(/یک\s*شنبه/g, 'یکشنبه')
-    .replace(/يكشنبه/g, 'یکشنبه')
-    .replace(/دو\s*شنبه/g, 'دوشنبه')
-    .replace(/سه\s*شنبه/g, 'سه‌شنبه')
-    .replace(/پنج\s*شنبه/g, 'پنج‌شنبه')
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u200B\u200D\uFEFF]/g, '')
     .replace(/\s+/g, ' ')
+    .replace(/یک\s*شنبه|يكشنبه/g, 'یکشنبه')
+    .replace(/دو\s*شنبه/g, 'دوشنبه')
+    .replace(/سه\s*شنبه|سه\u200Cشنبه|سهشنبه/g, 'سه‌شنبه')
+    .replace(/چهار\s*شنبه/g, 'چهارشنبه')
+    .replace(/پنج\s*شنبه|پنج\u200Cشنبه|پنجشنبه/g, 'پنج‌شنبه')
     .trim();
 };
 

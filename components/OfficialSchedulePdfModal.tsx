@@ -4,6 +4,7 @@
  * Supports custom date ranges (از تاریخ ... تا تاریخ ...), specific months, and full schedule exports
  */
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Printer, X, Calendar, FileSpreadsheet, Columns, ArrowRightLeft, Sparkles, Filter, Check } from 'lucide-react';
 import { ShiftEntry } from '../types';
 import { 
@@ -147,6 +148,7 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
   // Sync state when modal opens or initial props change
   useEffect(() => {
     if (isOpen) {
+      document.body.classList.add('print-mode-modal');
       if (initialFilterMode) setFilterMode(initialFilterMode);
       if (initialMonth) setSelectedMonth(initialMonth);
       if (initialStartDate) {
@@ -164,7 +166,13 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
         const p = maxDate.split('/');
         if (p.length === 3) setToParts({ year: p[0], month: p[1], day: p[2] });
       }
+    } else {
+      document.body.classList.remove('print-mode-modal');
     }
+
+    return () => {
+      document.body.classList.remove('print-mode-modal');
+    };
   }, [isOpen, initialFilterMode, initialMonth, initialStartDate, initialEndDate, minDate, maxDate]);
 
   // Filter schedule based on active mode
@@ -226,6 +234,31 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
     return 'برنامه شیفت';
   }, [filterMode, selectedMonth, customStart, customEnd, filteredSchedule, minDate, maxDate]);
 
+  // Dynamic Header Subtitle for official PDF banner (e.g. "تیر ماه")
+  const displayMonthSubtitle = useMemo(() => {
+    if (filterMode === 'month' && selectedMonth) {
+      const parts = selectedMonth.split('/');
+      if (parts.length === 2) {
+        const mNum = parts[1];
+        const mName = monthNamesMap[mNum] || mNum;
+        return `${mName} ماه`;
+      }
+    }
+    if (filterMode === 'all' && filteredSchedule.length > 0) {
+      const firstMonthNum = filteredSchedule[0].date.split('/')[1];
+      const firstMonthName = monthNamesMap[firstMonthNum] || '';
+      if (firstMonthName) return `${firstMonthName} ماه`;
+    }
+    if (filterMode === 'custom') {
+      const s = customStart || minDate;
+      const e = customEnd || maxDate;
+      if (s && e) {
+        return `از ${s} الی ${e}`;
+      }
+    }
+    return currentTitle;
+  }, [filterMode, selectedMonth, currentTitle, filteredSchedule, customStart, customEnd, minDate, maxDate]);
+
   // Compute rowspans for ON Call supervisor to merge consecutive days
   const onCallRowSpans = useMemo(() => {
     const spans: { [index: number]: number } = {};
@@ -251,10 +284,55 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
     return spans;
   }, [filteredSchedule]);
 
+  // Calculate dominant Persian month in the selected filtered range for filename on print/save
+  const dominantMonthName = useMemo(() => {
+    if (!filteredSchedule || filteredSchedule.length === 0) return 'شهریور';
+    const monthCounts: Record<number, number> = {};
+
+    filteredSchedule.forEach((item) => {
+      if (item.date) {
+        const parts = item.date.split('/');
+        if (parts.length >= 2) {
+          const m = parseInt(parts[1], 10);
+          if (m >= 1 && m <= 12) {
+            monthCounts[m] = (monthCounts[m] || 0) + 1;
+          }
+        }
+      }
+    });
+
+    let maxMonth = 0;
+    let maxCount = -1;
+    Object.entries(monthCounts).forEach(([mStr, count]) => {
+      const m = parseInt(mStr, 10);
+      if (count > maxCount) {
+        maxCount = count;
+        maxMonth = m;
+      }
+    });
+
+    const PERSIAN_MONTHS = [
+      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ];
+    return PERSIAN_MONTHS[maxMonth - 1] || 'شهریور';
+  }, [filteredSchedule]);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
-    window.print();
+    const defaultTitle = `برنامه شیفت ${dominantMonthName} ماه`;
+    const originalTitle = document.title;
+    document.title = defaultTitle;
+
+    document.body.classList.add('print-mode-modal');
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('print-mode-modal');
+        document.title = originalTitle;
+      }, 500);
+    }, 100);
   };
 
   const handleExportExcel = () => {
@@ -265,8 +343,11 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:fixed print:inset-0">
+  const modalContent = (
+    <div 
+      id="official-pdf-modal-wrapper"
+      className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex flex-col items-center justify-start p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto print:overflow-visible"
+    >
       
       {/* Top Controls Bar - Hidden when printing */}
       <div className="w-full max-w-5xl bg-white rounded-t-2xl shadow-xl border border-slate-200 p-3.5 sm:p-4.5 space-y-3.5 print:hidden sticky top-0 z-50">
@@ -488,71 +569,177 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
       {/* Printable Sheet Container */}
       <div 
         id="official-pdf-sheet" 
-        className="w-full max-w-5xl bg-white shadow-2xl border border-slate-300 p-4 sm:p-8 rounded-b-2xl print:rounded-none print:shadow-none print:border-none print:p-2 print:max-w-none print:w-full print:m-0 text-black font-['Vazirmatn',sans-serif]"
+        className="w-full max-w-5xl bg-white shadow-2xl border border-slate-300 p-4 sm:p-6 rounded-b-2xl print:rounded-none print:shadow-none print:border-none print:p-0 print:max-w-none print:w-full print:m-0 text-black font-['Vazirmatn',sans-serif]"
         dir="rtl"
       >
-        {/* Printable Header Section */}
-        <div className="mb-3">
-          {includeOnCall ? (
-            <div className="grid grid-cols-5 gap-2 items-stretch">
-              {/* Main Title Box (Columns 1 to 4) */}
-              <div className="col-span-4 bg-[#c6efce] border-[2px] border-black p-2.5 sm:p-3 text-center rounded-sm flex flex-col justify-center items-center">
-                <h1 className="text-lg sm:text-2xl font-black text-black tracking-wide">
-                  برنامه شیفت تولید
-                </h1>
-                <p className="text-xs sm:text-sm md:text-base font-bold text-black mt-1">
-                  ( {toPersianDigits(currentTitle)} )
-                </p>
-              </div>
+        {/* CSS Print Styles targeting A4 portrait 1-page fit */}
+        <style>{`
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 5mm 10mm !important;
+            }
+            html, body {
+              background: white !important;
+              color: black !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              overflow: hidden !important;
+            }
+            .print\\:hidden {
+              display: none !important;
+            }
+            body.print-mode-modal #root {
+              display: none !important;
+            }
+            body.print-mode-modal #modal-root {
+              display: block !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              background: white !important;
+              overflow: hidden !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            #official-pdf-modal-wrapper {
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              background: white !important;
+              overflow: hidden !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+            }
+            #official-pdf-sheet {
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              width: 100% !important;
+              height: 287mm !important;
+              max-width: none !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              background: white !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              box-sizing: border-box !important;
+            }
+            .pdf-table-wrapper {
+              flex: 1 1 auto !important;
+              display: flex !important;
+              flex-direction: column !important;
+              height: 100% !important;
+            }
+            table {
+              width: 100% !important;
+              height: 100% !important;
+              border-collapse: collapse !important;
+              border: 1.5px solid black !important;
+            }
+            tbody {
+              height: 100% !important;
+            }
+            tr {
+              page-break-inside: avoid !important;
+            }
+            th, td {
+              border: 1.5px solid black !important;
+              padding-top: 2px !important;
+              padding-bottom: 2px !important;
+              padding-left: 4px !important;
+              padding-right: 4px !important;
+              font-size: 13px !important;
+              line-height: 1.25 !important;
+              vertical-align: middle !important;
+            }
+            tr.pdf-column-header-row th {
+              background-color: #f59e0b !important;
+              padding-top: 8px !important;
+              padding-bottom: 8px !important;
+              font-size: 15px !important;
+              font-weight: 900 !important;
+              color: #000000 !important;
+            }
+            .pdf-header-title {
+              font-size: 20px !important;
+              line-height: 1.3 !important;
+              font-weight: 900 !important;
+            }
+            .pdf-header-sub {
+              font-size: 14px !important;
+              font-weight: 700 !important;
+            }
+            .pdf-footer-box {
+              margin-top: 6px !important;
+              padding-top: 8px !important;
+              padding-bottom: 8px !important;
+              flex-shrink: 0 !important;
+            }
+            .pdf-footer-text {
+              font-size: 14px !important;
+              font-weight: 900 !important;
+            }
+            .pdf-footer-off {
+              color: #dc2626 !important;
+              font-weight: 900 !important;
+            }
+          }
+        `}</style>
 
-              {/* ON Call Header Box (Column 5) */}
-              <div className="col-span-1 bg-white border-[2px] border-black p-2 sm:p-3 text-center rounded-sm flex items-center justify-center">
-                <span className="text-base sm:text-xl font-black text-black">
-                  ON Call
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="w-full bg-[#c6efce] border-[2px] border-black p-2.5 sm:p-3 text-center rounded-sm flex flex-col justify-center items-center">
-              <h1 className="text-lg sm:text-2xl font-black text-black tracking-wide">
-                برنامه شیفت تولید
-              </h1>
-              <p className="text-xs sm:text-sm md:text-base font-bold text-black mt-1">
-                ( {toPersianDigits(currentTitle)} )
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Schedule Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border-[2px] border-black text-center">
+        {/* Schedule Table with Integrated Header matching official PDF */}
+        <div className="overflow-x-auto pdf-table-wrapper">
+          <table className="w-full border-collapse border-[1.5px] border-black text-center">
             <thead>
-              <tr className="border-b-[2px] border-black">
-                <th className="w-[12%] bg-[#ffe699] border border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base md:text-lg">
+              {/* Top Banner Header Row - Full Span Green Banner */}
+              <tr className="border-b-[1.5px] border-black text-black">
+                <th 
+                  colSpan={includeOnCall ? 5 : 4} 
+                  className="bg-[#82c341] border-[1.5px] border-black p-1.5 text-center text-black"
+                >
+                  <div className="text-base sm:text-xl font-black pdf-header-title tracking-wide">
+                    برنامه شیفت تولید
+                  </div>
+                  <div className="text-xs sm:text-sm font-bold pdf-header-sub mt-0.5">
+                    ( {toPersianDigits(displayMonthSubtitle)} )
+                  </div>
+                </th>
+              </tr>
+
+              {/* Second Row: Column Name Headers */}
+              <tr className="border-b-[1.5px] border-black text-black pdf-column-header-row bg-[#f59e0b]">
+                <th className="w-[10%] bg-[#f59e0b] border-[1.5px] border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base">
                   روز
                 </th>
-                <th className="w-[14%] bg-[#ffe699] border border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base md:text-lg">
+                <th className="w-[13%] bg-[#f59e0b] border-[1.5px] border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base">
                   تاریخ
                 </th>
-                <th className={`${includeOnCall ? 'w-[28%]' : 'w-[37%]'} bg-[#ffc000] border border-black p-2 sm:p-2.5 text-black`}>
-                  <div className="text-sm sm:text-base md:text-lg font-black leading-tight">
-                    شیفت روز
-                  </div>
-                  <div className="text-xs sm:text-sm font-bold text-black/90 mt-0.5">
-                    (از ساعت ۸ الی ۱۹)
-                  </div>
+                <th className={`${includeOnCall ? 'w-[29.5%]' : 'w-[38.5%]'} bg-[#f59e0b] border-[1.5px] border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base`}>
+                  شیفت روز ( از ساعت ۸ الی ۱۹ )
                 </th>
-                <th className={`${includeOnCall ? 'w-[28%]' : 'w-[37%]'} bg-[#ffc000] border border-black p-2 sm:p-2.5 text-black`}>
-                  <div className="text-sm sm:text-base md:text-lg font-black leading-tight">
-                    شیفت شب
-                  </div>
-                  <div className="text-xs sm:text-sm font-bold text-black/90 mt-0.5">
-                    (از ساعت ۱۹ الی ۸)
-                  </div>
+                <th className={`${includeOnCall ? 'w-[29.5%]' : 'w-[38.5%]'} bg-[#f59e0b] border-[1.5px] border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base`}>
+                  شیفت شب ( از ساعت ۱۹ الی ۸ )
                 </th>
                 {includeOnCall && (
-                  <th className="w-[18%] bg-[#f8cbad] border border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base md:text-lg">
+                  <th className="w-[18%] bg-[#f59e0b] border-[1.5px] border-black p-2.5 sm:p-3 font-black text-black text-sm sm:text-base">
                     ON Call
                   </th>
                 )}
@@ -561,7 +748,7 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
             <tbody>
               {filteredSchedule.length === 0 ? (
                 <tr>
-                  <td colSpan={includeOnCall ? 5 : 4} className="p-8 text-center text-slate-500 font-bold border border-black text-sm">
+                  <td colSpan={includeOnCall ? 5 : 4} className="p-6 text-center text-slate-500 font-bold border border-black text-sm">
                     هیچ شیفتی در این بازه زمانی یافت نشد.
                   </td>
                 </tr>
@@ -584,28 +771,28 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
                   return (
                     <tr 
                       key={entry.id || `${entry.date}-${idx}`}
-                      className={`border-b border-black text-xs sm:text-[13px] md:text-sm ${isFriday ? 'bg-amber-50/60 font-bold' : idx % 2 === 1 ? 'bg-slate-50/80' : 'bg-white'}`}
+                      className={`border-b border-black text-xs sm:text-[13px] ${isFriday ? 'bg-amber-50/50 font-bold' : 'bg-white'}`}
                     >
                       {/* Day Name */}
-                      <td className={`border border-black p-2 sm:p-2.5 font-bold ${isFriday ? 'text-red-700' : 'text-black'}`}>
+                      <td className={`border border-black p-1 sm:p-1.5 font-bold ${isFriday ? 'text-red-700' : 'text-black'}`}>
                         {entry.dayName}
                       </td>
 
                       {/* Date in Persian Digits */}
-                      <td className="border border-black p-2 sm:p-2.5 font-bold text-black text-center whitespace-nowrap">
+                      <td className="border border-black p-1 sm:p-1.5 font-bold text-black text-center whitespace-nowrap">
                         {toPersianDigits(entry.date)}
                       </td>
 
                       {/* Day Shift Person(s) */}
-                      <td className="border border-black p-2 sm:p-2.5 font-bold text-black">
-                        <span className={entry.extraDayPersons?.length ? 'text-amber-950 font-black' : ''}>
+                      <td className="border border-black p-1 sm:p-1.5 font-bold text-black">
+                        <span>
                           {dayShiftDisplay}
                         </span>
                       </td>
 
                       {/* Night Shift Person(s) */}
-                      <td className="border border-black p-2 sm:p-2.5 font-bold text-black">
-                        <span className={entry.extraNightPersons?.length ? 'text-indigo-950 font-black' : ''}>
+                      <td className="border border-black p-1 sm:p-1.5 font-bold text-black">
+                        <span>
                           {nightShiftDisplay}
                         </span>
                       </td>
@@ -614,7 +801,7 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
                       {includeOnCall && rowSpan !== 0 && (
                         <td 
                           rowSpan={rowSpan > 1 ? rowSpan : undefined}
-                          className="border border-black p-2 sm:p-2.5 font-black text-black bg-white align-middle text-xs sm:text-[13px] md:text-sm"
+                          className="border border-black p-1 sm:p-1.5 font-black text-black bg-white align-middle text-xs sm:text-[13px]"
                         >
                           {entry.onCallPerson && entry.onCallPerson !== 'نامشخص' ? entry.onCallPerson : '-'}
                         </td>
@@ -627,13 +814,18 @@ export const OfficialSchedulePdfModal: React.FC<OfficialSchedulePdfModalProps> =
           </table>
         </div>
 
-        {/* Footer Notice */}
-        <div className="mt-3 bg-[#c6efce] border-[2px] border-black p-2.5 sm:p-3 text-center rounded-sm">
-          <p className="text-xs sm:text-sm md:text-base font-black text-black">
-            تمامی کارشناسان فردای شیفت شب OFF میباشند
+        {/* Footer Notice matching green banner */}
+        <div className="mt-2 bg-[#82c341] border-[1.5px] border-black p-1 sm:p-1.5 text-center pdf-footer-box rounded-xs">
+          <p className="text-xs sm:text-sm font-black text-black pdf-footer-text">
+            تمامی کارشناسان فردای شیفت شب <span className="text-red-600 font-black pdf-footer-off px-0.5">OFF</span> میباشند
           </p>
         </div>
       </div>
     </div>
   );
+
+  const mountTarget = typeof document !== 'undefined' ? (document.getElementById('modal-root') || document.body) : null;
+  if (!mountTarget) return modalContent;
+
+  return createPortal(modalContent, mountTarget);
 };

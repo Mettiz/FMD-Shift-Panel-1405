@@ -237,6 +237,10 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = subscribeToCloudRoster(
       (cloudData) => {
+        if (isStagingPreviewRef.current) {
+          console.log('Skipping cloud sync override while user is in staging preview');
+          return;
+        }
         isRemoteUpdateRef.current = true;
 
         if (cloudData.schedule && Array.isArray(cloudData.schedule) && cloudData.schedule.length > 0) {
@@ -244,11 +248,30 @@ const App: React.FC = () => {
           const cleanSchedule = non1404.length > 0 ? non1404 : SCHEDULE_DATA;
           const had1404 = cloudData.schedule.some(s => s.date.startsWith('1404'));
 
+          // Mathematically calculate and normalize dayName for every shift based on exact Jalali date
+          let hasDayNameFixes = false;
+          const normalizedSchedule = cleanSchedule.map(entry => {
+            const parts = entry.date.split('/');
+            if (parts.length === 3) {
+              const y = parseInt(parts[0], 10);
+              const m = parseInt(parts[1], 10);
+              const d = parseInt(parts[2], 10);
+              if (y && m && d) {
+                const correctDay = getDayNameForJalali(y, m, d);
+                if (entry.dayName !== correctDay) {
+                  hasDayNameFixes = true;
+                  return { ...entry, dayName: correctDay };
+                }
+              }
+            }
+            return entry;
+          });
+
           const cloudPersonnel = (cloudData.personnelList && Array.isArray(cloudData.personnelList) && cloudData.personnelList.length > 0) 
             ? cloudData.personnelList 
             : personnelList;
           const { updated } = upgradeToVibrantPersonnel(cloudPersonnel);
-          const { unifiedShifts, unifiedPersonnel } = unifyPersonnelAndShifts(cleanSchedule, updated, updated);
+          const { unifiedShifts, unifiedPersonnel } = unifyPersonnelAndShifts(normalizedSchedule, updated, updated);
           setSchedule(unifiedShifts);
           setPersonnelList(unifiedPersonnel);
           try {
@@ -258,8 +281,8 @@ const App: React.FC = () => {
             console.error('LocalStorage error', e);
           }
 
-          // If cloud data contained 1404 entries, immediately purge them from Firestore
-          if (had1404) {
+          // If cloud data contained 1404 entries OR un-normalized day names, immediately persist normalized data to Firestore
+          if (had1404 || hasDayNameFixes) {
             saveCloudRoster({ schedule: unifiedShifts }).catch(console.error);
           }
         } else if (cloudData.personnelList && Array.isArray(cloudData.personnelList) && cloudData.personnelList.length > 0) {
@@ -548,6 +571,12 @@ const App: React.FC = () => {
 
   // Staged Preview Mode (Load button applies to dashboard in preview mode before saving)
   const [isStagingPreview, setIsStagingPreview] = useState(false);
+  const isStagingPreviewRef = useRef(false);
+
+  useEffect(() => {
+    isStagingPreviewRef.current = isStagingPreview;
+  }, [isStagingPreview]);
+
   const [stagingMeta, setStagingMeta] = useState<{ source: string; rangeText?: string } | null>(null);
   const [backupBeforeStaging, setBackupBeforeStaging] = useState<{
     schedule: ShiftEntry[];
